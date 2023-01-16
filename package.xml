@@ -5,7 +5,7 @@
   <version>0.0.1</version>
   <description>A package containing ROS2 ur message definitions.</description>
   <maintainer email="support@universal-robots.com">Universal Robots A/S</maintainer>
-  <license>Apache License 2.0</license>
+  <license>BSD-3-Clause</license>
 
   <author email="support@universal-robots.com">Universal Robots A/S</author>
 
