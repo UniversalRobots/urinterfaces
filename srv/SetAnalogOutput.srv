@@ -1,0 +1,15 @@
+# Note: 'fun' is short for function of the pin to be selected
+bool OUTPUT_CURRENT = 0
+bool OUTPUT_VOLTAGE = 1
+
+# The value for pin [0-1]
+
+# Value for 'FUN_CURRENT' must be from [0.002; 0.020] A ;
+# Value for 'FUN_VOLTAGE' must be from [0; 10] V ;
+
+# request fields
+int8 pin
+bool output_type
+float64 value
+---
+bool success

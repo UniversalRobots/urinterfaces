@@ -1,0 +1,11 @@
+# The value for pin [0-7]
+
+# valid values for 'state' when setting digital IO or flags
+bool STATE_OFF = 0
+bool STATE_ON = 1
+
+# request fields
+int8 pin
+bool state
+---
+bool success

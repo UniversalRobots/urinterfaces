@@ -1,0 +1,4 @@
+
+geometry_msgs/Inertia inertia
+---
+bool success
