@@ -48,4 +48,3 @@ repos:
       - id: codespell
         args: ['--write-changes']
         exclude: \.(svg|pyc|drawio)$
-
