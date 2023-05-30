@@ -8,4 +8,4 @@ int8 PROGRAM_STATE_RESUMING=5
 int8 PROGRAM_STATE_RETRACTING=6
 
 std_msgs/Header header
-int8 value
+int8 data

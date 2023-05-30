@@ -1,6 +1,6 @@
 # Note: 'fun' is short for function of the pin to be selected
-bool OUTPUT_CURRENT = 0
-bool OUTPUT_VOLTAGE = 1
+uint8 CURRENT = 0
+uint8 VOLTAGE = 1
 
 # The value for pin [0-1]
 
@@ -9,7 +9,7 @@ bool OUTPUT_VOLTAGE = 1
 
 # request fields
 int8 pin
-bool output_type
-float64 value
+uint8 output_type # can be VOLTAGE or CURRENT, must match Analog.msg
+float64 data
 ---
 bool success

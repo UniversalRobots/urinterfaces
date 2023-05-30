@@ -13,4 +13,4 @@ int8 AUTOMATIC_MODE_SAFEGUARD_STOP=12
 int8 SYSTEM_THREE_POSITION_ENABLING_STOP=13
 
 std_msgs/Header header
-int8 safety_state
+int8 data

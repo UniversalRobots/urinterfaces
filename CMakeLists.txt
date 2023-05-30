@@ -32,7 +32,6 @@ set(msg_files
   "msg/SafetyStatus.msg"
   "msg/SpeedSliderFraction.msg"
   "msg/TCPState.msg"
-  "msg/ProgramState.msg"
   "msg/ToolOutputMode.msg"
   "msg/VoltageCurrentStamped.msg"
   "msg/WorldModelNames.msg"
