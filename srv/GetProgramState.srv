@@ -1,5 +1,5 @@
 ---
-ProgramState state
+RuntimeState state
 string program_name
 string answer
 bool success

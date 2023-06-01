@@ -9,4 +9,4 @@ int8 RUNNING=7
 int8 UPDATING_FIRMWARE=8
 
 std_msgs/Header header
-int8 value
+int8 data
