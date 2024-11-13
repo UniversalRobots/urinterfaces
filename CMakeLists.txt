@@ -6,6 +6,9 @@ project(ur_interfaces)
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 17)
 endif()
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(builtin_interfaces REQUIRED)
@@ -13,9 +16,9 @@ find_package(rosidl_default_generators REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(action_msgs REQUIRED)
 
 set(msg_files
+  "msg/ActiveTCP.msg"
   "msg/Analog.msg"
   "msg/BoolStamped.msg"
   "msg/ControlCycle.msg"
@@ -37,21 +40,10 @@ set(msg_files
   "msg/WorldModelNames.msg"
 )
 
-set(srv_files
+set(SRV_FILES
   "srv/SetAnalogOutput.srv"
   "srv/SetDigitalOutput.srv"
   "srv/SetSpeedFraction.srv"
-  "srv/AddToLog.srv"
-  "srv/GetLoadedProgram.srv"
-  "srv/GetProgramState.srv"
-  "srv/GetRobotMode.srv"
-  "srv/SetPayload.srv"
-  "srv/GetSafetyMode.srv"
-  "srv/IsProgramRunning.srv"
-  "srv/IsProgramSaved.srv"
-  "srv/Load.srv"
-  "srv/Popup.srv"
-  "srv/RawRequest.srv"
 )
 
 set(action_files
@@ -59,10 +51,10 @@ set(action_files
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  ${msg_files}
-  ${srv_files}
   ${action_files}
-  DEPENDENCIES builtin_interfaces std_msgs geometry_msgs sensor_msgs action_msgs
+  ${msg_files}
+  ${SRV_FILES}
+  DEPENDENCIES builtin_interfaces std_msgs geometry_msgs sensor_msgs
   ADD_LINTER_TESTS
 )
 
