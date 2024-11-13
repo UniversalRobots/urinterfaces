@@ -1,5 +1,6 @@
 name: industrial_ci
 on:
+  workflow_dispatch:
   pull_request:
     branches:
       - master
@@ -16,10 +17,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ROS_DISTRO: [humble, rolling]
+        ROS_DISTRO: [humble, jazzy, rolling]
         ROS_REPO: [main, testing]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: 'ros-industrial/industrial_ci@master'
         env:
           ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
