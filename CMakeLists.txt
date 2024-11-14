@@ -40,7 +40,7 @@ set(msg_files
   "msg/WorldModelNames.msg"
 )
 
-set(SRV_FILES
+set(srv_files
   "srv/SetAnalogOutput.srv"
   "srv/SetDigitalOutput.srv"
   "srv/SetSpeedFraction.srv"
@@ -53,7 +53,7 @@ set(action_files
 rosidl_generate_interfaces(${PROJECT_NAME}
   ${action_files}
   ${msg_files}
-  ${SRV_FILES}
+  ${srv_files}
   DEPENDENCIES builtin_interfaces std_msgs geometry_msgs sensor_msgs
   ADD_LINTER_TESTS
 )
