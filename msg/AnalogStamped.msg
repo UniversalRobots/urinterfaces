@@ -1,2 +1,2 @@
 std_msgs/Header header
-bool[] data
+Analog data

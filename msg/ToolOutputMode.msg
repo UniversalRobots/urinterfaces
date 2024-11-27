@@ -1,5 +1,5 @@
 std_msgs/Header header
-uint8 TOOL_OUPUT=0
+uint8 TOOL_OUTPUT=0
 uint8 TOOL_POWER=1
 uint8 TOOL_SAFE=2
 

@@ -3,7 +3,7 @@
 <package format="3">
   <name>ur_interfaces</name>
   <version>0.0.2</version>
-  <description>A package containing ROS2 ur message definitions.</description>
+  <description>A package containing ROS2 UR message definitions.</description>
   <maintainer email="support@universal-robots.com">Universal Robots A/S</maintainer>
   <license>BSD-3-Clause</license>
 
