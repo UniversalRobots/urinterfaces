@@ -1,6 +1,6 @@
-# ur_interfaces
+# urinterfaces
 
-[![industrial_ci](https://github.com/UniversalRobots/ur_interfaces/actions/workflows/industrial_ci.yml/badge.svg?branch=master)](https://github.com/UniversalRobots/ur_interfaces/actions/workflows/industrial_ci.yml)
+[![industrial_ci](https://github.com/UniversalRobots/urinterfaces/actions/workflows/industrial_ci.yml/badge.svg?branch=master)](https://github.com/UniversalRobots/urinterfaces/actions/workflows/industrial_ci.yml)
 
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
