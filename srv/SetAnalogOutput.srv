@@ -1,15 +1,5 @@
-# Note: 'fun' is short for function of the pin to be selected
-uint8 CURRENT = 0
-uint8 VOLTAGE = 1
-
-# The value for pin [0-1]
-
-# Value for 'FUN_CURRENT' must be from [0.002; 0.020] A ;
-# Value for 'FUN_VOLTAGE' must be from [0; 10] V ;
-
-# request fields
-int8 pin
-uint8 output_type # can be VOLTAGE or CURRENT, must match Analog.msg
-float64 data
+# Set an analog output to a given value.
+# Multiple outputs can be set at once by providing more than one entry in the data array
+Analog[] data
 ---
 bool success
