@@ -2,8 +2,8 @@
 Changelog for package urinterfaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+9.0.0 (2026-06-26)
+------------------
 * Update jazzy (`#11 <https://github.com/UniversalRobots/ur_interfaces/issues/11>`_)
   * Add new messages and services for PolyScope 10.13.0
   * Add explicit default value for play_program in SetMode action
