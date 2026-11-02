@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "get_variables.response.schema.json",
+  "title": "get_variables response",
+  "description": "JSON payload of the `get_variables` service response, found in `response.data.json_string.data` of the `urinterfaces/srv/VariablesViewer` service. The request is empty.\n\nThe response contains all shared variables, or an error object if the variables could not be read, for example because a second request was made within 500 ms.",
+  "oneOf": [
+    {
+      "$ref": "shared_variable_update.schema.json"
+    },
+    {
+      "$ref": "#/$defs/Error"
+    }
+  ],
+  "$defs": {
+    "Error": {
+      "type": "object",
+      "description": "Returned instead of a variable update when the request failed.",
+      "required": [
+        "error"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "error": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "update_type": "full",
+      "shared_variables": {
+        "counter": 123
+      }
+    },
+    {
+      "error": "Too many requests made"
+    }
+  ]
+}

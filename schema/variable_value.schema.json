@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "variable_value.schema.json",
+  "title": "Published variable value",
+  "description": "The value of one variable as it is published by the controller. Used by `shared_variable_update`, `global_variable_update`, `get_variables` and `cleanup_application`.\n\nAn int and a float are both published as a plain JSON number, and a float with an integral value is published without a decimal point (`1.0` becomes `1`), so a consumer cannot tell the two apart by looking at the number. A list is always an object with the keys `_ur_list` and `_ur_capacity`. A plain array is a matrix, an array of arrays of numbers. A pose is an object with the key `_ur_pose`. A struct is an object with one key per member. Values that cannot be represented as data (for example a function or a thread) are published as an object with a single `_ur_*` key set to null.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/Int"
+    },
+    {
+      "$ref": "#/$defs/Float"
+    },
+    {
+      "type": "boolean"
+    },
+    {
+      "type": "string"
+    },
+    {
+      "$ref": "#/$defs/Matrix"
+    },
+    {
+      "$ref": "#/$defs/Pose"
+    },
+    {
+      "$ref": "#/$defs/ListWithCapacity"
+    },
+    {
+      "$ref": "#/$defs/Placeholder"
+    },
+    {
+      "$ref": "#/$defs/Struct"
+    }
+  ],
+  "$defs": {
+    "Int": {
+      "description": "Signed 32 bit integer.",
+      "type": "integer",
+      "minimum": -2147483648,
+      "maximum": 2147483647
+    },
+    "Float": {
+      "description": "Floating point number, published with 8 significant digits. A float with an integral value is published without a decimal point and large magnitudes use exponent notation (`1e+10`), so it can also look like an integer, even one outside the 32 bit range. Not a number and infinity are published as 0.",
+      "type": "number"
+    },
+    "Matrix": {
+      "type": "array",
+      "description": "A matrix, as rows of numbers. Lists are not published as plain arrays, see `ListWithCapacity`.",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "Pose": {
+      "type": "object",
+      "description": "Cartesian pose `[x, y, z, rx, ry, rz]`, position in meters and rotation vector in radians.",
+      "required": [
+        "_ur_pose"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "_ur_pose": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "items": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "ListWithCapacity": {
+      "type": "object",
+      "description": "A list together with its capacity.",
+      "required": [
+        "_ur_list",
+        "_ur_capacity"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "_ur_list": {
+          "type": "array",
+          "items": {
+            "$ref": "#"
+          }
+        },
+        "_ur_capacity": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "Placeholder": {
+      "type": "object",
+      "description": "A value that has no data representation, for example a function or a thread. It is published as an object with a single `_ur_*` key set to null.",
+      "minProperties": 1,
+      "maxProperties": 1,
+      "propertyNames": {
+        "pattern": "^_ur_"
+      },
+      "additionalProperties": {
+        "type": "null"
+      }
+    },
+    "Struct": {
+      "type": "object",
+      "description": "A struct, one entry per member. Member names starting with `_ur_` are reserved for the other value types.",
+      "propertyNames": {
+        "not": {
+          "pattern": "^_ur_"
+        }
+      },
+      "additionalProperties": {
+        "$ref": "#"
+      }
+    }
+  },
+  "examples": [
+    42,
+    1.5,
+    true,
+    "abc",
+    [
+      [
+        1,
+        2
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    {
+      "_ur_pose": [
+        0.1,
+        0.5,
+        0,
+        3.14,
+        0,
+        0
+      ]
+    },
+    {
+      "_ur_list": [
+        1,
+        2,
+        3
+      ],
+      "_ur_capacity": 5
+    },
+    {
+      "_ur_xmlrpc": null
+    },
+    {
+      "x": 10,
+      "name": "item_1"
+    }
+  ]
+}

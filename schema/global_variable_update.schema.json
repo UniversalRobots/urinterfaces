@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "global_variable_update.schema.json",
+  "title": "global_variable_update",
+  "description": "JSON payload of the `global_variable_update` topic, found in `data.json_string.data` of the `urinterfaces/msg/VariableUpdate` message.\n\nThe message contains the global variables of one logic program. A `diff` update with the changed variables is published while the logic program runs. A `full` update with all variables is published when the logic program stops. When the logic program starts, a `full` update with `sub_update_type` set to `initial` is published, which lists the names of all global variables with the value null.",
+  "type": "object",
+  "required": [
+    "update_type",
+    "global_variables"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "update_type": {
+      "enum": [
+        "full",
+        "diff"
+      ],
+      "description": "`full` if the message contains all global variables, `diff` if it only contains the changed ones."
+    },
+    "global_variables": {
+      "type": "object",
+      "description": "Contains the id of the logic program and one object with the global variables, named after the logic program.",
+      "required": [
+        "logic_program_id"
+      ],
+      "properties": {
+        "logic_program_id": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of the logic program that the update belongs to."
+        },
+        "sub_update_type": {
+          "const": "initial",
+          "description": "Only present in the first update of a started logic program, which contains the variable names only."
+        },
+        "error": {
+          "const": "incomplete message",
+          "description": "Present if the update did not fit in the message and is incomplete. When only part of the variables had to be left out, the same `error` entry is added inside the object of the logic program instead, next to the variables that did fit."
+        }
+      },
+      "additionalProperties": {
+        "type": "object",
+        "description": "The global variables of the logic program, as `name: value` pairs. The value is null in the initial update.",
+        "additionalProperties": {
+          "anyOf": [
+            {
+              "$ref": "variable_value.schema.json"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "update_type": "diff",
+      "global_variables": {
+        "logic_program_id": 1,
+        "my_program": {
+          "global2": 5,
+          "global4": 7
+        }
+      }
+    },
+    {
+      "update_type": "full",
+      "global_variables": {
+        "logic_program_id": 1,
+        "sub_update_type": "initial",
+        "my_program": {
+          "global1": null,
+          "global2": null
+        }
+      }
+    }
+  ]
+}

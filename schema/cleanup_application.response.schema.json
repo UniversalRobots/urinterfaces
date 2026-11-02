@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cleanup_application.response.schema.json",
+  "title": "cleanup_application response",
+  "description": "JSON payload of the `cleanup_application` service response, found in `response.data.json_string.data` of the `urinterfaces/srv/VariablesViewer` service. The request is empty.\n\nThe service stops all programs and clears the shared variables. The response contains the shared variables as they were before they were cleared, or an error object if the cleanup failed. Some failures (for example a timeout while stopping the programs) are returned as plain text instead of JSON.",
+  "oneOf": [
+    {
+      "$ref": "shared_variable_update.schema.json"
+    },
+    {
+      "$ref": "#/$defs/Error"
+    }
+  ],
+  "$defs": {
+    "Error": {
+      "type": "object",
+      "description": "Returned instead of a variable update when the request failed.",
+      "required": [
+        "error"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "error": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "update_type": "full",
+      "shared_variables": {
+        "counter": 123
+      }
+    }
+  ]
+}

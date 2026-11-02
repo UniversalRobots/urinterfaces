@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "shared_variable_update.schema.json",
+  "title": "shared_variable_update",
+  "description": "JSON payload of the `shared_variable_update` topic, found in `data.json_string.data` of the `urinterfaces/msg/VariableUpdate` message.\n\nThe message contains all shared (application) variables. It is published periodically, at most every 500 ms.",
+  "type": "object",
+  "required": [
+    "update_type",
+    "shared_variables"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "update_type": {
+      "const": "full",
+      "description": "Always `full`: every message contains all shared variables."
+    },
+    "shared_variables": {
+      "type": "object",
+      "description": "All shared (application) variables as `name: value` pairs.",
+      "additionalProperties": {
+        "$ref": "variable_value.schema.json"
+      }
+    }
+  },
+  "examples": [
+    {
+      "update_type": "full",
+      "shared_variables": {
+        "counter": 123,
+        "name": "abc",
+        "temperature": 33.334455,
+        "waypoint": {
+          "_ur_pose": [
+            0.1,
+            0.5,
+            0,
+            3.14,
+            0,
+            0
+          ]
+        }
+      }
+    }
+  ]
+}
