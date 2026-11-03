@@ -1,0 +1,411 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "modbus_client_signals.schema.json",
+  "title": "modbus_client_signals",
+  "description": "JSON payload of the `modbus_client_signals` topic, found in `data.json_string.data` of the `urinterfaces/msg/VariableUpdate` message.\n\nDiagnostics snapshot of every configured MODBUS client unit and signal. The topic is published every 500 ms with best effort reliability and volatile durability. Every message is a full snapshot. Each unit and signal splits its fields into `configuration` (what the user set), `state` (the current live reading) and `statistics` (counters and timings).\n\nA unit is one TCP endpoint. It is identified by its address. If the address was given without a port, the default port 502 is added, so `1.2.3.4` and `1.2.3.4:502` are the same unit. Signals configured with the same address belong to the same unit. Signal names are unique across all units. Signals for custom commands are not included.\n\nSamples may be dropped and nothing is latched, so a late joiner waits up to one period for the next full snapshot. A subscriber that requests reliable delivery cannot connect to a best effort publisher; `ros2 topic echo` selects a compatible QoS automatically, so pass no explicit `--qos-*` flags: `ros2 topic echo --full-length --field data.json_string.data /<robot_serial>/modbus_client_signals`.",
+  "type": "object",
+  "required": [
+    "version",
+    "update_type",
+    "units"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Version of the payload format. It is increased whenever the payload changes in a way that existing consumers cannot ignore, so a consumer can recognise a payload it cannot parse."
+    },
+    "update_type": {
+      "type": "string",
+      "const": "full",
+      "description": "Always `full`: the complete unit and signal list is sent every time."
+    },
+    "units": {
+      "type": "array",
+      "description": "One entry per configured TCP endpoint. Empty when no MODBUS signals exist.",
+      "items": {
+        "$ref": "#/$defs/ModbusUnit"
+      }
+    }
+  },
+  "$defs": {
+    "ModbusUnit": {
+      "type": "object",
+      "title": "MODBUS unit (one TCP endpoint)",
+      "required": [
+        "configuration",
+        "state",
+        "statistics",
+        "signals"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "configuration": {
+          "$ref": "#/$defs/UnitConfiguration"
+        },
+        "state": {
+          "$ref": "#/$defs/UnitState"
+        },
+        "statistics": {
+          "$ref": "#/$defs/UnitStatistics"
+        },
+        "signals": {
+          "type": "array",
+          "description": "Every non-custom-command signal configured on this unit.",
+          "items": {
+            "$ref": "#/$defs/ModbusSignal"
+          }
+        }
+      }
+    },
+    "UnitConfiguration": {
+      "type": "object",
+      "required": [
+        "ip",
+        "port",
+        "sequential_mode"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "ip": {
+          "type": "string",
+          "description": "Host of the MODBUS server, as configured. This string identifies the unit.",
+          "examples": [
+            "192.168.1.10",
+            "192.168.1.11"
+          ]
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "description": "TCP port of the MODBUS server. 502 unless an explicit `host:port` was configured."
+        },
+        "sequential_mode": {
+          "type": "boolean",
+          "description": "When true, the unit keeps only one request outstanding at a time and serves its signals in turn, which limits the update rate of each signal. The flag is set per unit: the last signal added with an explicit value decides for the whole unit."
+        }
+      }
+    },
+    "UnitState": {
+      "type": "object",
+      "required": [
+        "connected"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "connected": {
+          "type": "boolean",
+          "description": "True while at least one signal on the unit is getting answers from the server, i.e. has `connection_status >= 0`. A Modbus exception reply still counts as connected, because it proves the endpoint is reachable; only `disconnected` (-2) and `connecting` (-1) do not."
+        }
+      }
+    },
+    "UnitStatistics": {
+      "type": "object",
+      "required": [
+        "reconnect_count",
+        "invalid_packets",
+        "most_important_error"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "reconnect_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Reconnect attempts on this unit's socket since it was created. Monotonic."
+        },
+        "invalid_packets": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Replies discarded because they could not be matched or parsed. A steadily growing value\npoints at a server that answers but disagrees with the request framing.\n"
+        },
+        "most_important_error": {
+          "type": "integer",
+          "description": "POSIX `errno` of the most relevant socket error, or `0` for no error. **Not** a status enum. Use `state.connected` for the connection state; this field is for diagnosing why a connection fails.",
+          "examples": [
+            0,
+            111,
+            113
+          ]
+        }
+      }
+    },
+    "ModbusSignal": {
+      "type": "object",
+      "title": "MODBUS signal",
+      "required": [
+        "name",
+        "configuration",
+        "state",
+        "statistics"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Signal name as given to `modbus_add_signal`. Unique across the whole controller, not\njust within the unit, so it is a safe consumer-side key.\n",
+          "examples": [
+            "MODBUS_1"
+          ]
+        },
+        "configuration": {
+          "$ref": "#/$defs/SignalConfiguration"
+        },
+        "state": {
+          "$ref": "#/$defs/SignalState"
+        },
+        "statistics": {
+          "$ref": "#/$defs/SignalStatistics"
+        }
+      }
+    },
+    "SignalConfiguration": {
+      "type": "object",
+      "required": [
+        "type",
+        "slave_number",
+        "read_address",
+        "write_address",
+        "read_register_count",
+        "write_register_count",
+        "update_frequency",
+        "runstate_choice",
+        "watchdog_timeout_s"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "integer",
+          "enum": [
+            -1,
+            0,
+            1,
+            2,
+            3,
+            4,
+            15,
+            16,
+            23
+          ],
+          "description": "Signal type. It is also\nthe discriminator for how `state.values` must be read.\n\n* `-1` UNDEFINED\n* `0` DIGITAL_INPUT - reads coils (FC1)\n* `1` DIGITAL_OUTPUT - reads coils (FC1), writes FC5 or FC15\n* `2` REGISTER_INPUT - reads **input** registers (FC4)\n* `3` REGISTER_OUTPUT - reads **holding** registers (FC3), writes FC6 or FC16\n* `4` CUSTOM_COMMAND\n* `15` MULTIPLE_DIGITAL_OUTPUT\n* `16` MULTIPLE_REGISTER_OUTPUT\n* `23` MULTIPLE_REGISTER_IO\n\nTypes 2 and 3 are how input registers and holding registers are distinguished; the\nnumbers 15, 16 and 23 happen to match their Modbus function codes.\n"
+        },
+        "slave_number": {
+          "type": "integer",
+          "description": "MODBUS slave (unit) address inside the server. 255 when unused."
+        },
+        "read_address": {
+          "type": "integer",
+          "description": "Address of the first coil or register read by this signal."
+        },
+        "write_address": {
+          "type": "integer",
+          "description": "Address of the first coil or register written by this signal. 0 for input types."
+        },
+        "read_register_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 255,
+          "description": "Number of coils or registers per read request, and therefore the length of `state.values`. At least 1."
+        },
+        "write_register_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 255,
+          "description": "Number of coils or registers per write request. Never below 1, also for signals that are never written. A single-register write (FC5/FC6) is used when this is 1, a multi-write (FC15/FC16) above that."
+        },
+        "update_frequency": {
+          "type": "integer",
+          "description": "Requested polling rate in Hz, as set by `modbus_set_signal_update_frequency` (default 10). `0` or `-1` mean **inactive**: the signal is only polled when a running program asks for it. The achieved rate can be lower, for example in `sequential_mode`; compare against `statistics.average_update_frequency` for what is actually happening.",
+          "minimum": -32768,
+          "maximum": 32767
+        },
+        "runstate_choice": {
+          "type": "integer",
+          "enum": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "description": "What an output signal does when program or drive-power state changes.\n\n* `0` PRESERVE_STATE - never driven by runstate\n* `1` SET_LOW_AT_PROGRAM_STOP\n* `2` SET_HIGH_AT_PROGRAM_STOP\n* `3` REFLECT_PROGRAM_STATE\n* `4` LOW_WHILE_ABORTED\n* `5` REFLECT_ABORTED_STATE\n* `6` REFLECT_DRIVE_POWER_STATE - high while drive power is on\n* `7` LOW_WHILE_DRIVE_POWER - low while drive power is on, high otherwise\n\nOnly meaningful for output types; input signals report `0`.\n"
+        },
+        "watchdog_timeout_s": {
+          "type": "number",
+          "description": "Watchdog timeout in **seconds** configured for the signal. It decides how long connection and device errors on this signal stay muted before they are reported to the program: while `connection_status` is not `0`, errors are suppressed until the signal has been invalid for longer than this.\n\n* negative (`-2`) - no watchdog has been set, which is the default\n* `0` - nothing is muted, errors are reported immediately\n* positive - seconds to mute\n\nOnly the watchdog set by the main program is reported. A watchdog set by a logic program does not show up here."
+        }
+      }
+    },
+    "SignalState": {
+      "type": "object",
+      "required": [
+        "values",
+        "valid",
+        "connection_status"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "values": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "integer"
+          },
+          "description": "Last known values, `read_register_count` elements long, or `null` when `valid` is\n`false`. The elements are **untyped integers**; `configuration.type` tells the consumer\nhow to read them, because digital and register values share one array.\n\n* digital types (`0`, `1`, `15`) - each element is a coil, always exactly `0` or `1`,\n  render as boolean\n* register types (`2`, `3`, `16`, `23`) - each element is an unsigned 16-bit register\n  widened to int32, so the range is `0..65535`, render as a number\n\n`null` means there is no live reading to show right now - either no reply has ever been\nreceived, or the server has since become unreachable / started answering with an\nexception. Consumers must check `valid` before trusting `values`; the controller never\nemits a stale or placeholder array once a signal has stopped being valid.\n",
+          "examples": [
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              0,
+              1
+            ],
+            null
+          ]
+        },
+        "valid": {
+          "type": "boolean",
+          "description": "Whether `values` is currently a live reading. True only when the signal has received at\nleast one reply **and** `connection_status` is `0`. It is false before the first reply,\nand it goes false again while the server is unreachable or answering with an exception;\nin both cases `values` is `null` rather than showing a leftover reading.\n"
+        },
+        "connection_status": {
+          "type": "integer",
+          "description": "Per-signal connection state. Negative and\nzero values are defined by UR, positive values are Modbus exception codes returned by\nthe server - which means any value `>= 0` proves the server answered.\n\n* `-2` DISCONNECTED\n* `-1` CONNECTING - also the initial value for a freshly added signal\n* `0` CONNECTION_OK\n* `1` EXCEPTION_ILLEGAL_FUNCTION_CODE\n* `2` EXCEPTION_ILLEGAL_DATA_ACCESS\n* `3` EXCEPTION_ILLEGAL_DATA_VALUE\n* `4` EXCEPTION_SERVER_FAILURE\n* `5` EXCEPTION_ACKNOWLEDGE\n* `6` EXCEPTION_SERVER_BUSY\n* `10` EXCEPTION_GATEWAY_PROBLEM - gateway path not available\n* `11` EXCEPTION_GATEWAY_PROBLEM_TARGET_FAILURE\n\nThe value is the exception code as the server sent it, so a server can also report a code that is not listed here. Only the values above have a defined meaning.\n",
+          "minimum": -128,
+          "maximum": 127
+        }
+      }
+    },
+    "SignalStatistics": {
+      "type": "object",
+      "required": [
+        "response_time_ms",
+        "time_since_last_update_ms",
+        "failed_requests_cnt",
+        "response_timeouts_cnt",
+        "average_update_frequency"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "response_time_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Latency of the most recent request/reply pair, measured in steps of 2 ms, so `2` is the smallest value rather than a real 2 ms round trip. Only written when a reply arrives, so it **freezes** at the last measured value when communication stops - it does not fall back to 0."
+        },
+        "time_since_last_update_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Milliseconds since the last reply. This is the field to watch for staleness: it keeps\ngrowing without bound while the server is silent, whereas `response_time_ms` and\n`average_update_frequency` freeze.\n"
+        },
+        "failed_requests_cnt": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "description": "Requests that could not be sent, counted since the signal was added. 16-bit, wraps."
+        },
+        "response_timeouts_cnt": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "description": "Requests that were sent but never answered within the 2 s communication timeout,\ncounted since the signal was added. 16-bit, wraps.\n"
+        },
+        "average_update_frequency": {
+          "type": "number",
+          "description": "Observed reply rate in Hz, as an exponential moving average with weight 0.2 on the newest\ninterval. `-1` until enough replies have arrived to measure an interval. Freezes at the\nlast value when communication stops. Compare against\n`configuration.update_frequency` to see whether the signal keeps up with its request.\n",
+          "examples": [
+            9.8,
+            -1
+          ]
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "version": 1,
+      "update_type": "full",
+      "units": [
+        {
+          "configuration": {
+            "ip": "192.168.1.10",
+            "port": 502,
+            "sequential_mode": true
+          },
+          "state": {
+            "connected": true
+          },
+          "statistics": {
+            "reconnect_count": 0,
+            "invalid_packets": 0,
+            "most_important_error": 0
+          },
+          "signals": [
+            {
+              "name": "MODBUS_1",
+              "configuration": {
+                "type": 2,
+                "slave_number": 255,
+                "read_address": 0,
+                "write_address": 0,
+                "read_register_count": 3,
+                "write_register_count": 1,
+                "update_frequency": 10,
+                "runstate_choice": 0,
+                "watchdog_timeout_s": 1.5
+              },
+              "state": {
+                "values": [
+                  1,
+                  2,
+                  3
+                ],
+                "valid": true,
+                "connection_status": 0
+              },
+              "statistics": {
+                "response_time_ms": 3,
+                "time_since_last_update_ms": 100,
+                "failed_requests_cnt": 0,
+                "response_timeouts_cnt": 0,
+                "average_update_frequency": 9.8
+              }
+            },
+            {
+              "name": "MODBUS_2",
+              "configuration": {
+                "type": 1,
+                "slave_number": 255,
+                "read_address": 0,
+                "write_address": 1,
+                "read_register_count": 1,
+                "write_register_count": 1,
+                "update_frequency": 10,
+                "runstate_choice": 0,
+                "watchdog_timeout_s": -2.0
+              },
+              "state": {
+                "values": null,
+                "valid": false,
+                "connection_status": -2
+              },
+              "statistics": {
+                "response_time_ms": 0,
+                "time_since_last_update_ms": 5000,
+                "failed_requests_cnt": 3,
+                "response_timeouts_cnt": 3,
+                "average_update_frequency": -1.0
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

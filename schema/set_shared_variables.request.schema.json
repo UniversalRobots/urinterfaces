@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "set_shared_variables.request.schema.json",
+  "title": "set_shared_variables request",
+  "description": "JSON payload of the `set_shared_variables` service request, found in `request.json_string.data` of the `urinterfaces/srv/SharedVariablesEditor` service.\n\nVariables that do not exist are created, existing variables are assigned the new value. A variable set to null is deleted, which stops all running programs. The request is validated before anything is changed: if one value is invalid, no variable is modified. Other keys in the root object are ignored.",
+  "type": "object",
+  "required": [
+    "shared_variables"
+  ],
+  "properties": {
+    "shared_variables": {
+      "type": "object",
+      "description": "The variables to create, modify or delete, as `name: value` pairs.",
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Value"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "Value": {
+      "description": "A variable value. Structs cannot be set through this service.",
+      "anyOf": [
+        {
+          "description": "Signed 32 bit integer.",
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        {
+          "description": "Floating point number. A number with a decimal point or an exponent is stored as a float, other numbers as an int. A whole number outside the 32 bit range is therefore only accepted when it is written as a float (`3e9`), which this schema cannot tell apart from the integer `3000000000`, that is rejected.",
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "description": "A list, or a matrix when every element is an array.",
+          "items": {
+            "$ref": "#/$defs/Value"
+          }
+        },
+        {
+          "type": "object",
+          "description": "Cartesian pose `[x, y, z, rx, ry, rz]`, position in meters and rotation vector in radians.",
+          "required": [
+            "_ur_pose"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "_ur_pose": {
+              "type": "array",
+              "minItems": 6,
+              "maxItems": 6,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "description": "A list with a capacity. The capacity must not be smaller than the length of the list. A list whose elements are lists is handled as a matrix and its capacity must then be equal to its length, which this schema does not express.",
+          "required": [
+            "_ur_list",
+            "_ur_capacity"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "_ur_list": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Value"
+              }
+            },
+            "_ur_capacity": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      ]
+    }
+  },
+  "examples": [
+    {
+      "shared_variables": {
+        "counter": 42,
+        "name": "abc",
+        "waypoint": {
+          "_ur_pose": [
+            0.1,
+            0.5,
+            0,
+            3.14,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "shared_variables": {
+        "temperature": null
+      }
+    }
+  ]
+}
